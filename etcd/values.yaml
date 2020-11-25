@@ -59,6 +59,9 @@ persistentVolume:
 ## The system will create a volume with "medium: Memory"
 memoryMode: false
 
+## Extend the default etcd storage to 8GB
+quotaBackendBytes: "8589934592"
+
 ## Node labels and tolerations for pod assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature

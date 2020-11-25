@@ -50,7 +50,7 @@ spec:
         - containerPort: {{ .Values.clientPort }}
           name: client
         resources:
-{{ toYaml .Values.resources | indent 10 }}          
+{{ toYaml .Values.resources | indent 10 }}
         env:
         - name: ETCDCTL_API
           value: "3"
@@ -84,7 +84,7 @@ spec:
         - name: etcd-client-certs
           mountPath: /opt/etcd/certs/client/
           readOnly: true
-        {{- end }}             
+        {{- end }}
         lifecycle:
           preStop:
             exec:
@@ -98,7 +98,7 @@ spec:
                   done
 
                   HOSTNAME=$(hostname)
-                  AUTH_OPTIONS="{{ $etcdAuthOptions }}"                  
+                  AUTH_OPTIONS="{{ $etcdAuthOptions }}"
 
                   member_hash() {
                       etcdctl $AUTH_OPTIONS member list | grep {{ $etcdPeerProtocol }}://${HOSTNAME}.${SET_NAME}:2380 | cut -d ',' -f1
@@ -121,7 +121,7 @@ spec:
             HOSTNAME=$(hostname)
             AUTH_OPTIONS="{{ $etcdAuthOptions }}"
             # store member id into PVC for later member replacement
-            collect_member() {                
+            collect_member() {
                 while ! etcdctl $AUTH_OPTIONS member list > /dev/null 2>&1; do sleep 1; done
                 etcdctl $AUTH_OPTIONS member list | grep {{ $etcdPeerProtocol }}://${HOSTNAME}.${SET_NAME}:2380 | cut -d ',' -f1 > /var/run/etcd/member_id
                 exit 0
@@ -146,9 +146,9 @@ spec:
                     echo "Waiting for ${SET_NAME}-${i}.${SET_NAME} to come up"
                     ping -W 1 -c 1 ${SET_NAME}-${i}.${SET_NAME} > /dev/null && break
                     sleep 1s
-                done                
+                done
             done
-            
+
             # re-joining after failure?
             if [ -e /var/run/etcd/default.etcd && -e /var/run/etcd/member_id ]; then
                 echo "Re-joining etcd member"
@@ -161,7 +161,7 @@ spec:
                     --listen-client-urls {{ $etcdClientProtocol }}://0.0.0.0:2379\
                     --advertise-client-urls {{ $etcdClientProtocol }}://${HOSTNAME}.${SET_NAME}:2379 \
                     --data-dir /var/run/etcd/default.etcd
-                    
+
             fi
 
             # etcd-SET_ID
@@ -201,8 +201,8 @@ spec:
                     --data-dir /var/run/etcd/default.etcd \
                     --initial-advertise-peer-urls {{ $etcdPeerProtocol }}://${HOSTNAME}.${SET_NAME}:2380 \
                     --initial-cluster ${ETCD_INITIAL_CLUSTER} \
-                    --initial-cluster-state ${ETCD_INITIAL_CLUSTER_STATE}
-                    
+                    --initial-cluster-state ${ETCD_INITIAL_CLUSTER_STATE} \
+                    --quota-backend-bytes {{ .Values.quotaBackendBytes }}
             fi
 
             PEERS=""
@@ -221,14 +221,15 @@ spec:
                 --initial-cluster-token etcd-cluster-1 \
                 --initial-cluster ${PEERS} \
                 --initial-cluster-state new \
-                --data-dir /var/run/etcd/default.etcd
+                --data-dir /var/run/etcd/default.etcd \
+                --quota-backend-bytes {{ .Values.quotaBackendBytes }}
       volumes:
       {{- if or .Values.auth.client.enableAuthentication (and .Values.auth.client.secureTransport ) }}
       - name: etcd-client-certs
         secret:
           secretName: {{ required "A secret containinig the client certificates is required" .Values.auth.client.existingSecret }}
           defaultMode: 256
-      {{- end }}      
+      {{- end }}
   {{- if .Values.persistentVolume.enabled }}
   volumeClaimTemplates:
   - metadata:

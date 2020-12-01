@@ -195,6 +195,7 @@ spec:
                 collect_member &
 
                 exec etcd --name ${HOSTNAME} \
+                    --auto-compaction-mode=revision --auto-compaction-retention=1000 \
                     --listen-peer-urls {{ $etcdPeerProtocol }}://0.0.0.0:2380 \
                     --listen-client-urls {{ $etcdClientProtocol }}://0.0.0.0:2379 \
                     --advertise-client-urls {{ $etcdClientProtocol }}://${HOSTNAME}.${SET_NAME}:2379 \
@@ -214,6 +215,7 @@ spec:
 
             # join member
             exec etcd --name ${HOSTNAME} \
+                --auto-compaction-mode=revision --auto-compaction-retention=1000 \
                 --initial-advertise-peer-urls {{ $etcdPeerProtocol }}://${HOSTNAME}.${SET_NAME}:2380 \
                 --listen-peer-urls {{ $etcdPeerProtocol }}://0.0.0.0:2380 \
                 --listen-client-urls {{ $etcdClientProtocol }}://0.0.0.0:2379 \
